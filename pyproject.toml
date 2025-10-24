@@ -3,7 +3,7 @@ name = "excel-toolkit"
 version = "1.0.0"
 description = "Excel批量操作工具箱 - 一个为非技术用户设计的Web应用"
 authors = [
-    {name = "StanleyChanH", email = "stanleychan@example.com"}
+    {name = "StanleyChanH"}
 ]
 readme = "README.md"
 requires-python = ">=3.8"

@@ -249,7 +249,6 @@ A: 请检查文件格式是否正确、参数是否完整，然后重试。如�
 如有问题或建议，请通过以下方式联系：
 
 - 提交 [Issue](https://github.com/StanleyChanH/excel-toolkit/issues)
-- 发送邮件至：stanleychan@example.com
 
 ---
 
