@@ -1,0 +1,27 @@
+[project]
+name = "excel-toolkit"
+version = "1.0.0"
+description = "Excel批量操作工具箱 - 一个为非技术用户设计的Web应用"
+authors = [
+    {name = "StanleyChanH", email = "stanleychan@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+dependencies = [
+    "flask>=3.0.0",
+    "pandas>=2.0.0",
+    "openpyxl>=3.1.0",
+    "werkzeug>=3.0.0",
+    "requests>=2.25.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["app"]
+
+[tool.uv]
+dev-dependencies = []

@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel批量操作工具箱</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            overflow-x: auto;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 20px 30px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            color: #495057;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 40px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .function-section {
+            margin-bottom: 30px;
+        }
+
+        .function-section h2 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .function-description {
+            color: #6c757d;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-button {
+            display: block;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            text-align: center;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-button:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .file-input-button.has-files {
+            border-color: #28a745;
+            background: #f0fff4;
+            color: #28a745;
+        }
+
+        .file-list {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #495057;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .file-list-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 10px;
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 10px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .result-section.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+                max-height: 200px;
+            }
+        }
+
+        .result-title {
+            color: #155724;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .download-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .download-link:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .error-message {
+            display: none;
+            margin-top: 20px;
+            padding: 15px 20px;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            color: #721c24;
+            animation: shake 0.3s ease;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .help-text {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .tab {
+                padding: 15px 20px;
+                font-size: 0.9rem;
+            }
+
+            .tab-content {
+                padding: 25px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔧 Excel批量操作工具箱</h1>
+            <p>专为非技术人员设计的简单易用Excel文件处理工具</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="merge-files">📁 合并文件</button>
+            <button class="tab" data-tab="merge-sheets">📊 合并Sheet</button>
+            <button class="tab" data-tab="split-column">✂️ 按列拆分</button>
+            <button class="tab" data-tab="split-rows">📄 按行拆分</button>
+            <button class="tab" data-tab="find-replace">🔍 查找替换</button>
+            <button class="tab" data-tab="delete-columns">🗑️ 删除列</button>
+            <button class="tab" data-tab="filter-data">🎯 数据筛选</button>
+            <button class="tab" data-tab="convert-format">🔄 格式转换</button>
+        </div>
+
+        <!-- 合并文件 -->
+        <div class="tab-content active" id="merge-files">
+            <div class="function-section">
+                <h2>合并多个Excel文件</h2>
+                <div class="function-description">
+                    将多个结构相同的Excel文件纵向合并成一个文件。适用于月度报告、部门数据汇总等场景。
+                </div>
+
+                <form id="merge-files-form">
+                    <div class="form-group">
+                        <label>选择Excel文件（可多选）：</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="merge-files-input" class="file-input" multiple accept=".xlsx,.xls,.csv">
+                            <div class="file-input-button" id="merge-files-button">
+                                📁 点击选择文件或拖拽文件到此处
+                            </div>
+                            <div class="file-list" id="merge-files-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="keep-headers" checked>
+                        <label for="keep-headers">保留标题行（只保留第一个文件的标题）</label>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="add-source-column">
+                        <label for="add-source-column">添加"来源文件"列</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">开始合并</button>
+                </form>
+
+                <div class="loading" id="merge-files-loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">正在处理文件，请稍候...</div>
+                </div>
+
+                <div class="result-section" id="merge-files-result">
+                    <div class="result-title">✅ 处理完成！</div>
+                    <div class="download-link" id="merge-files-download">
+                        📥 下载合并结果
+                    </div>
+                </div>
+
+                <div class="error-message" id="merge-files-error"></div>
+            </div>
+        </div>
+
+        <!-- 合并Sheet -->
+        <div class="tab-content" id="merge-sheets">
+            <div class="function-section">
+                <h2>合并单个文件的多个Sheet</h2>
+                <div class="function-description">
+                    将一个Excel文件中的所有Sheet合并成一个Sheet。适用于将按月份、部门分Sheet的数据汇总。
+                </div>
+
+                <form id="merge-sheets-form">
+                    <div class="form-group">
+                        <label>选择Excel文件：</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="merge-sheets-input" class="file-input" accept=".xlsx,.xls">
+                            <div class="file-input-button" id="merge-sheets-button">
+                                📁 点击选择文件
+                            </div>
+                            <div class="file-list" id="merge-sheets-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="add-sheet-column">
+                        <label for="add-sheet-column">添加"来源Sheet"列</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">开始合并</button>
+                </form>
+
+                <div class="loading" id="merge-sheets-loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">正在处理文件，请稍候...</div>
+                </div>
+
+                <div class="result-section" id="merge-sheets-result">
+                    <div class="result-title">✅ 处理完成！</div>
+                    <div class="download-link" id="merge-sheets-download">
+                        📥 下载合并结果
+                    </div>
+                </div>
+
+                <div class="error-message" id="merge-sheets-error"></div>
+            </div>
+        </div>
+
+        <!-- 按列拆分 -->
+        <div class="tab-content" id="split-column">
+            <div class="function-section">
+                <h2>按列拆分Sheet</h2>
+                <div class="function-description">
+                    根据指定列的唯一值将数据拆分成多个文件。例如按"部门"列拆分成各部门单独的文件。
+                </div>
+
+                <form id="split-column-form">
+                    <div class="form-group">
+                        <label>选择Excel文件：</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="split-column-input" class="file-input" accept=".xlsx,.xls,.csv">
+                            <div class="file-input-button" id="split-column-button">
+                                📁 点击选择文件
+                            </div>
+                            <div class="file-list" id="split-column-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="split-column-name">列名：</label>
+                        <input type="text" id="split-column-name" class="form-control" placeholder="例如：部门、地区、类别" required>
+                        <div class="help-text">输入要据此拆分的列名，该列的每个唯一值将生成一个文件</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">开始拆分</button>
+                </form>
+
+                <div class="loading" id="split-column-loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">正在处理文件，请稍候...</div>
+                </div>
+
+                <div class="result-section" id="split-column-result">
+                    <div class="result-title">✅ 处理完成！</div>
+                    <div class="download-link" id="split-column-download">
+                        📥 下载拆分结果（ZIP压缩包）
+                    </div>
+                </div>
+
+                <div class="error-message" id="split-column-error"></div>
+            </div>
+        </div>
+
+        <!-- 按行拆分 -->
+        <div class="tab-content" id="split-rows">
+            <div class="function-section">
+                <h2>按行数拆分Sheet</h2>
+                <div class="function-description">
+                    将大数据文件按指定行数拆分成多个小文件。适用于需要控制文件大小的场景。
+                </div>
+
+                <form id="split-rows-form">
+                    <div class="form-group">
+                        <label>选择Excel文件：</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="split-rows-input" class="file-input" accept=".xlsx,.xls,.csv">
+                            <div class="file-input-button" id="split-rows-button">
+                                📁 点击选择文件
+                            </div>
+                            <div class="file-list" id="split-rows-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rows-per-file">每文件行数：</label>
+                        <input type="number" id="rows-per-file" class="form-control" placeholder="例如：10000" min="1" required>
+                        <div class="help-text">每个拆分文件包含的最大行数</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">开始拆分</button>
+                </form>
+
+                <div class="loading" id="split-rows-loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">正在处理文件，请稍候...</div>
+                </div>
+
+                <div class="result-section" id="split-rows-result">
+                    <div class="result-title">✅ 处理完成！</div>
+                    <div class="download-link" id="split-rows-download">
+                        📥 下载拆分结果（ZIP压缩包）
+                    </div>
+                </div>
+
+                <div class="error-message" id="split-rows-error"></div>
+            </div>
+        </div>
+
+        <!-- 查找替换 -->
+        <div class="tab-content" id="find-replace">
+            <div class="function-section">
+                <h2>批量查找与替换</h2>
+                <div class="function-description">
+                    在多个文件的所有Sheet中进行全局文本查找和替换。适用于批量修改数据、纠错等场景。
+                </div>
+
+                <form id="find-replace-form">
+                    <div class="form-group">
+                        <label>选择文件（可多选）：</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="find-replace-input" class="file-input" multiple accept=".xlsx,.xls,.csv">
+                            <div class="file-input-button" id="find-replace-button">
+                                📁 点击选择文件或拖拽文件到此处
+                            </div>
+                            <div class="file-list" id="find-replace-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="find-text">查找内容：</label>
+                            <input type="text" id="find-text" class="form-control" placeholder="要查找的文本" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="replace-text">替换为：</label>
+                            <input type="text" id="replace-text" class="form-control" placeholder="替换后的文本（可为空）">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">开始替换</button>
+                </form>
+
+                <div class="loading" id="find-replace-loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">正在处理文件，请稍候...</div>
+                </div>
+
+                <div class="result-section" id="find-replace-result">
+                    <div class="result-title">✅ 处理完成！</div>
+                    <div class="download-link" id="find-replace-download">
+                        📥 下载替换结果（ZIP压缩包）
+                    </div>
+                </div>
+
+                <div class="error-message" id="find-replace-error"></div>
+            </div>
+        </div>
+
+        <!-- 删除列 -->
+        <div class="tab-content" id="delete-columns">
+            <div class="function-section">
+                <h2>批量删除指定列</h2>
+                <div class="function-description">
+                    在多个文件中删除指定的列。适用于清理敏感信息、简化数据结构等场景。
+                </div>
+
+                <form id="delete-columns-form">
+                    <div class="form-group">
+                        <label>选择文件（可多选）：</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="delete-columns-input" class="file-input" multiple accept=".xlsx,.xls,.csv">
+                            <div class="file-input-button" id="delete-columns-button">
+                                📁 点击选择文件或拖拽文件到此处
+                            </div>
+                            <div class="file-list" id="delete-columns-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="columns-to-delete">要删除的列名：</label>
+                        <input type="text" id="columns-to-delete" class="form-control" placeholder="例如：姓名,电话 或 A,C" required>
+                        <div class="help-text">多个列名用逗号分隔，系统会自动删除存在的列</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">开始删除</button>
+                </form>
+
+                <div class="loading" id="delete-columns-loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">正在处理文件，请稍候...</div>
+                </div>
+
+                <div class="result-section" id="delete-columns-result">
+                    <div class="result-title">✅ 处理完成！</div>
+                    <div class="download-link" id="delete-columns-download">
+                        📥 下载处理结果（ZIP压缩包）
+                    </div>
+                </div>
+
+                <div class="error-message" id="delete-columns-error"></div>
+            </div>
+        </div>
+
+        <!-- 数据筛选 -->
+        <div class="tab-content" id="filter-data">
+            <div class="function-section">
+                <h2>批量数据筛选</h2>
+                <div class="function-description">
+                    从多个文件中筛选出符合条件的数据并合并到一个文件中。支持文本和数值筛选。
+                </div>
+
+                <form id="filter-data-form">
+                    <div class="form-group">
+                        <label>选择文件（可多选）：</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="filter-data-input" class="file-input" multiple accept=".xlsx,.xls,.csv">
+                            <div class="file-input-button" id="filter-data-button">
+                                📁 点击选择文件或拖拽文件到此处
+                            </div>
+                            <div class="file-list" id="filter-data-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="filter-column">列名：</label>
+                            <input type="text" id="filter-column" class="form-control" placeholder="要筛选的列名" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="filter-condition">条件：</label>
+                            <select id="filter-condition" class="form-control" required>
+                                <option value="">选择条件</option>
+                                <option value="等于">等于</option>
+                                <option value="不等于">不等于</option>
+                                <option value="包含">包含</option>
+                                <option value="不包含">不包含</option>
+                                <option value="大于">大于</option>
+                                <option value="小于">小于</option>
+                                <option value="大于等于">大于等于</option>
+                                <option value="小于等于">小于等于</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="filter-value">值：</label>
+                            <input type="text" id="filter-value" class="form-control" placeholder="筛选的值" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">开始筛选</button>
+                </form>
+
+                <div class="loading" id="filter-data-loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">正在处理文件，请稍候...</div>
+                </div>
+
+                <div class="result-section" id="filter-data-result">
+                    <div class="result-title">✅ 处理完成！</div>
+                    <div class="download-link" id="filter-data-download">
+                        📥 下载筛选结果
+                    </div>
+                </div>
+
+                <div class="error-message" id="filter-data-error"></div>
+            </div>
+        </div>
+
+        <!-- 格式转换 -->
+        <div class="tab-content" id="convert-format">
+            <div class="function-section">
+                <h2>格式转换（XLSX ↔ CSV）</h2>
+                <div class="function-description">
+                    批量转换Excel文件格式。XLSX转CSV时，每个Sheet会生成一个独立的CSV文件。
+                </div>
+
+                <form id="convert-format-form">
+                    <div class="form-group">
+                        <label>选择文件（可多选）：</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="convert-format-input" class="file-input" multiple accept=".xlsx,.xls,.csv">
+                            <div class="file-input-button" id="convert-format-button">
+                                📁 点击选择文件或拖拽文件到此处
+                            </div>
+                            <div class="file-list" id="convert-format-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="convert-type">转换类型：</label>
+                        <select id="convert-type" class="form-control" required>
+                            <option value="">选择转换类型</option>
+                            <option value="xlsx_to_csv">XLSX 转 CSV</option>
+                            <option value="csv_to_xlsx">CSV 转 XLSX</option>
+                        </select>
+                        <div class="help-text">XLSX转CSV：每个Sheet生成一个CSV文件；CSV转XLSX：每个CSV生成一个Excel文件</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">开始转换</button>
+                </form>
+
+                <div class="loading" id="convert-format-loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">正在处理文件，请稍候...</div>
+                </div>
+
+                <div class="result-section" id="convert-format-result">
+                    <div class="result-title">✅ 处理完成！</div>
+                    <div class="download-link" id="convert-format-download">
+                        📥 下载转换结果（ZIP压缩包）
+                    </div>
+                </div>
+
+                <div class="error-message" id="convert-format-error"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let selectedFiles = {};
+
+        // 标签切换功能
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 移除所有活动状态
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                // 添加当前活动状态
+                tab.classList.add('active');
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // 文件上传处理函数
+        function setupFileUpload(inputId, buttonId, listId, multiple = false) {
+            const input = document.getElementById(inputId);
+            const button = document.getElementById(buttonId);
+            const list = document.getElementById(listId);
+
+            // 点击按钮触发文件选择
+            button.addEventListener('click', () => {
+                input.click();
+            });
+
+            // 文件选择处理
+            input.addEventListener('change', (e) => {
+                const files = Array.from(e.target.files);
+                selectedFiles[inputId] = files;
+
+                if (files.length > 0) {
+                    button.classList.add('has-files');
+                    button.innerHTML = `📁 已选择 ${files.length} 个文件`;
+
+                    // 显示文件列表
+                    list.innerHTML = files.map(file =>
+                        `<div class="file-list-item">📄 ${file.name} (${formatFileSize(file.size)})</div>`
+                    ).join('');
+                } else {
+                    button.classList.remove('has-files');
+                    button.innerHTML = multiple ?
+                        '📁 点击选择文件或拖拽文件到此处' :
+                        '📁 点击选择文件';
+                    list.innerHTML = '';
+                }
+            });
+
+            // 拖拽支持
+            if (multiple) {
+                button.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    button.style.borderColor = '#667eea';
+                    button.style.background = '#f0f4ff';
+                });
+
+                button.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    button.style.borderColor = '#dee2e6';
+                    button.style.background = '#f8f9fa';
+                });
+
+                button.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    button.style.borderColor = '#dee2e6';
+                    button.style.background = '#f8f9fa';
+
+                    const files = Array.from(e.dataTransfer.files);
+                    input.files = e.dataTransfer.files;
+
+                    // 触发change事件
+                    const event = new Event('change', { bubbles: true });
+                    input.dispatchEvent(event);
+                });
+            }
+        }
+
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // 表单提交处理函数
+        function setupFormSubmit(formId, apiUrl, loadingId, resultId, downloadId, errorId, formDataBuilder = null) {
+            const form = document.getElementById(formId);
+            const loading = document.getElementById(loadingId);
+            const result = document.getElementById(resultId);
+            const download = document.getElementById(downloadId);
+            const error = document.getElementById(errorId);
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                // 隐藏之前的结果和错误
+                result.classList.remove('active');
+                error.classList.remove('active');
+
+                // 构建FormData
+                let formData;
+                if (formDataBuilder) {
+                    formData = formDataBuilder();
+                } else {
+                    formData = new FormData(form);
+                }
+
+                // 显示加载状态
+                loading.classList.add('active');
+                form.querySelector('button[type="submit"]').disabled = true;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                    }
+
+                    // 获取文件名
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let filename = 'result.xlsx';
+                    if (contentDisposition) {
+                        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                        if (filenameMatch && filenameMatch[1]) {
+                            filename = filenameMatch[1].replace(/['"]/g, '');
+                        }
+                    }
+
+                    // 创建下载链接
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    download.href = url;
+                    download.download = filename;
+
+                    // 显示结果
+                    loading.classList.remove('active');
+                    result.classList.add('active');
+
+                } catch (err) {
+                    loading.classList.remove('active');
+                    error.textContent = `❌ ${err.message}`;
+                    error.classList.add('active');
+                } finally {
+                    form.querySelector('button[type="submit"]').disabled = false;
+                }
+            });
+        }
+
+        // 初始化所有文件上传组件
+        setupFileUpload('merge-files-input', 'merge-files-button', 'merge-files-list', true);
+        setupFileUpload('merge-sheets-input', 'merge-sheets-button', 'merge-sheets-list', false);
+        setupFileUpload('split-column-input', 'split-column-button', 'split-column-list', false);
+        setupFileUpload('split-rows-input', 'split-rows-button', 'split-rows-list', false);
+        setupFileUpload('find-replace-input', 'find-replace-button', 'find-replace-list', true);
+        setupFileUpload('delete-columns-input', 'delete-columns-button', 'delete-columns-list', true);
+        setupFileUpload('filter-data-input', 'filter-data-button', 'filter-data-list', true);
+        setupFileUpload('convert-format-input', 'convert-format-button', 'convert-format-list', true);
+
+        // 初始化所有表单提交
+        setupFormSubmit('merge-files-form', '/api/merge-files', 'merge-files-loading', 'merge-files-result', 'merge-files-download', 'merge-files-error');
+
+        setupFormSubmit('merge-sheets-form', '/api/merge-sheets', 'merge-sheets-loading', 'merge-sheets-result', 'merge-sheets-download', 'merge-sheets-error');
+
+        setupFormSubmit('split-column-form', '/api/split-by-column', 'split-column-loading', 'split-column-result', 'split-column-download', 'split-column-error');
+
+        setupFormSubmit('split-rows-form', '/api/split-by-rows', 'split-rows-loading', 'split-rows-result', 'split-rows-download', 'split-rows-error');
+
+        setupFormSubmit('find-replace-form', '/api/find-replace', 'find-replace-loading', 'find-replace-result', 'find-replace-download', 'find-replace-error');
+
+        setupFormSubmit('delete-columns-form', '/api/delete-columns', 'delete-columns-loading', 'delete-columns-result', 'delete-columns-download', 'delete-columns-error');
+
+        setupFormSubmit('filter-data-form', '/api/filter-data', 'filter-data-loading', 'filter-data-result', 'filter-data-download', 'filter-data-error');
+
+        setupFormSubmit('convert-format-form', '/api/convert-format', 'convert-format-loading', 'convert-format-result', 'convert-format-download', 'convert-format-error');
+
+        // 页面加载完成提示
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Excel工具箱已就绪！');
+        });
+    </script>
+</body>
+</html>
